@@ -152,4 +152,4 @@ cython_debug/
 #.idea/
 
 # Arquivo csv gerado da execução estática do ilp
-static_r.csv
+#static_r.csv
