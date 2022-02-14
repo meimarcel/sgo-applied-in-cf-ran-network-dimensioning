@@ -47,7 +47,9 @@ class SGO:
         
         for kick in range(self.kicksLimit):
             print("Iteration :",kick,"BestEval =",self.globalBestEval,"BestPositions =",self.globalBestPosition)
-            #print("Evals:",self.globalBestEvals)
+            print("Evals:",self.globalBestEvals)
+            eval,total_cloud,total_fog = self.__evaluate(self.globalBestPosition)
+            print("Cloud", total_cloud, "Fog", total_fog)
             self.dataFit.append(self.globalBestEval)
             
             if(self.target != None and self.globalBestEval <= self.target):
@@ -71,13 +73,18 @@ class SGO:
                 else:
                     self.__move_forward(player)
                 
-                evals = self.__evaluate(player.position)
+                evals,*resto = self.__evaluate(player.position)
                 functionEval += 1
 
                 for e in range(len(evals)):
                     if evals[e] < player.bestEvals[e]:
                         player.bestEvals[e] = evals[e]
                         player.bestPosition[e] = player.position[e].copy()
+                
+                evals,*resto = self.__evaluate(player.bestPosition)
+                functionEval += 1
+                
+                player.bestEvals = evals.copy()
 
                 if player.getBestEval() < potentialBestEval:
                     potentialBestEval = player.getBestEval()
@@ -139,7 +146,7 @@ class SGO:
             for x in range(self.numberOfRrh):
                 position[x][0] = 1
             
-            evals = self.__evaluate(position)
+            evals,*resto = self.__evaluate(position)
             player = Player([pp.copy() for pp in position], [pp.copy() for pp in position], evals.copy(), self.numberOfRrh, self.numberOfVariables)
             players.append(player)
             
@@ -164,10 +171,14 @@ class SGO:
     def __evaluate(self, position):
         evals = []
         
+        total_traffic_cloud = 0
+        total_traffic_fog = 0
+        
         for x in range(self.numberOfRrh):
-            evals.append(Restricao().energy(x, position[x]))
+            eval, total_traffic_cloud, total_traffic_fog = Restricao().energy(total_traffic_cloud, total_traffic_fog, position[x])
+            evals.append(eval)
                          
-        return evals
+        return evals, total_traffic_cloud, total_traffic_fog
     
     def __move_off(self, player):
         #player.position = list(np.random.choice([0,1], self.numberOfVariables))
