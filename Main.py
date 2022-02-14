@@ -3,7 +3,7 @@ from SGO.SGO import SGO
 playerNumber = 20
 substituteNumber = 3
 kicksLimit = 1000000
-functionEvaluationLimit = 100000
+functionEvaluationLimit = 10000
 numberOfRrh = 40
 numberOfVariables = 4
 target = 0
