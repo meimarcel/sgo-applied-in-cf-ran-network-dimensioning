@@ -13,7 +13,7 @@ from Restriction import Restricao
 
 class SGO:
     def __init__(self, playerNumber, substituteNumber, kicksLimit, functionEvaluationLimit, numberOfRrh, numberOfVariables,
-                 target=None, moveOffProbability=0.2, moveForwardAfterMoveOffProbability=0.05, 
+                 target=None, moveOffProbability=0.1, moveForwardAfterMoveOffProbability=0.05, 
                  substitutionProbability=0.1, inertiaWeight=0.191, cognitiveWeight=0.191, socialWeight=0.618):
         self.playerNumber = playerNumber
         self.substituteNumber = substituteNumber
