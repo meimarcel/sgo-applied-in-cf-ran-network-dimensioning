@@ -1,32 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy as np
-import pandas as pd
-import itertools
-import operator
-
 
 class Restricao:
 
 	def __init__(self):
-		self.NodeState = [0,0,0] #verificar o estado ativo ou não do nó
+		self.NodeState = [0,0,0,0,0] #verificar o estado ativo ou não do nó
 		self.LambdasState = [0,0,0,0,0,0,0,0] #verificar o estado ativo ou não do VPON
-		self.SPlitState = [0,0,0,0] #verificar o estado ativo ou não
+		self.SPlitState = [0,0,0,0,0] #verificar o estado ativo ou não
 
 		self.node_id = []
 		self.lambda_id = []
 		self.split_id= []
 		self.State = []
-		self.Node_Capacity = [40000, 20000, 20000]
-		self.ecpri_split = [1966, 74, 119, 675] #largura de banda demandada por split
+		#self.Node_Capacity = [40000, 20000, 20000]
+		self.Node_Capacity = [80000, 20000, 20000, 20000, 20000]
+		self.ecpri_split = [1966, 675,119, 74, 0,0] #largura de banda demandada por split
 		self.fog_maxCapaticy= []
 		#calcula a energia em pós processamento. Lista_total = a lista com todos os resultados
-		self.cloud_vpons = [0,0,0,0]
-		self.fog_vpons = [0,0,0,0]
+		self.cloud_vpons = [0,0,0,0,0,0,0,0]
+		self.fog_vpons = [0,0,0,0,0,0,0,0]
 	
  	#função para verificar elementos repetidos na lista
-	def duplicatas(slef, lst, x):
+	def duplicatas(self, lst, x):
 		interator = 0
 		for ele in lst:
 			if (ele == x):
@@ -105,47 +101,65 @@ class Restricao:
 		####################################################### RESTRIÇÃO SPLIT ==============================================		
 		#Restrição 1 - Um Split por Antena - Se mais de 1 ou não tiver pelo menos 1 -> custo alto
 
+		if self.split_id.count(1) == 0:
+			cost += 100000
 		if self.split_id.count(1) == 1:
 			cost += 0
 		if self.split_id.count(1) == 2:
-			cost += 20000
+			cost += 200000
 		if self.split_id.count(1) == 3:
-			cost += 50000
+			cost += 500000
 		if self.split_id.count(1) == 4:
-			cost += 100000
+			cost += 10000000
+		if self.split_id.count(1) == 5:
+			cost += 10000000
 
-		if total_traffic_cloud+1966<=37000:
+		if total_traffic_cloud+1966<=self.Node_Capacity[0]*0.86:#37000: #Limiar considerado
 			if self.split_id[0]==1:
 				cost+=0
 			if self.split_id[1]==1:
-				cost+=100
+				cost+=11000
 			if self.split_id[2]==1:
-				cost+=500
+				cost+=12000
 			if self.split_id[3]==1:
-				cost+=1000
+				cost+=13000
+			if self.split_id[4]==1:
+				cost+=14000
 			total_traffic_cloud += 1966
 		else:
 			if self.split_id[0]==1:
 				total_traffic_cloud += 1966
-				cost+=100000
-    
+				cost+=5000
+
+
+		if(total_traffic_cloud > 80000 or total_traffic_fog > 80000):
+			cost += 30000
+
+		if(total_traffic_cloud < 80000 or total_traffic_fog < 80000):
+			cost += 0    
 			if self.split_id[1]==1:
 				total_traffic_cloud += 674.4
 				total_traffic_fog += 1291.6
-				if(total_traffic_cloud > 40000 or total_traffic_fog > 40000):
-					cost += 1000
-     
+			#if(total_traffic_cloud > 80000 or total_traffic_fog > 80000):
+			#	cost += 10000
+ 
 			if self.split_id[2]==1:
 				total_traffic_cloud += 119
 				total_traffic_fog += 1847
-				if(total_traffic_cloud > 40000 or total_traffic_fog > 40000):
-					cost += 500
-     
+			#if(total_traffic_cloud > 80000 or total_traffic_fog > 80000):
+				#cost += 5000
+ 
 			if self.split_id[3]==1:
 				total_traffic_cloud += 74
 				total_traffic_fog += 1892
-				if(total_traffic_cloud > 40000 or total_traffic_fog > 40000):
-					cost += 100
+			#if(total_traffic_cloud > 80000 or total_traffic_fog > 80000):
+			#	cost += 10000
+
+			if self.split_id[4]==1:
+				total_traffic_cloud += 0
+				total_traffic_fog += 1966
+			#if(total_traffic_cloud > 80000 or total_traffic_fog > 80000):
+			#	cost += 10000
 
 		return cost, total_traffic_cloud, total_traffic_fog
 
@@ -155,9 +169,9 @@ class Restricao:
 		"""
 
 	######################################################### Parâmetros para Teste ###############################################################
-
+'''
 #ww = [1,0,1,1,1,0,0,0,0,1,1,0,0,0,1,1,0,1,1,1,0,0,0,0,1,1,0,1,0,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,1,0,0,1,1,1,0,0,0,0,1,1,0,0,0,1,1,1,0,1,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1]# 
-ww = [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 1, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1]]
+ww = [[1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 1, 0,0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 1, 0, 0,0], [0, 1, 0, 0,0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0] , [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [1, 0, 0, 0,0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 1, 0,0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 1, 0, 0,0], [0, 1, 0, 0,0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0]]
 print(len(ww))
 if __name__ == "__main__":
 	test = Restricao()
@@ -171,7 +185,7 @@ if __name__ == "__main__":
 	for i in range(len(ww)):
 		e,tc,tf = test.energy(tc,tf,ww[i])
 		print(i, e,tc,tf)
-
+'''
 
 
 

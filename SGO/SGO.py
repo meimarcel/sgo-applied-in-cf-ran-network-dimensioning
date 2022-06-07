@@ -32,7 +32,7 @@ class SGO:
         self.globalBestPosition = []
         self.globalBestEval = 10e1000000000000000
         self.globalBestEvals = []
-    
+    '''
     def run(self):
         players = []
         substitutePlayers = []
@@ -132,7 +132,7 @@ class SGO:
         print("Execution Time: %fs" %(endTime-startTime))
         print("Function Evaluations:",functionEval)
         print("------------------------------END------------------------------")
-                    
+    '''                    
                     
             
     def __initPopulation(self):
@@ -232,3 +232,99 @@ class SGO:
     
     def __sig(self, v):
         return 1 / (1 + (e ** (-v)))
+
+
+
+
+
+    def retorno(self):
+        players = []
+        substitutePlayers = []
+        functionEval = 0
+        
+        players = self.__initPopulation()
+        substitutePlayers = self.__initSubstitutes(players)
+        functionEval += self.playerNumber
+        
+        for kick in range(self.kicksLimit):
+            #print("Iteration :",kick,"BestEval =",self.globalBestEval,"BestPositions =",self.globalBestPosition)
+            #print("Evals:",self.globalBestEvals)
+            eval,total_cloud,total_fog = self.__evaluate(self.globalBestPosition)
+            #print("Cloud", total_cloud, "Fog", total_fog)
+            self.dataFit.append(self.globalBestEval)
+            
+            if(self.target != None and self.globalBestEval <= self.target):
+                break;
+            
+            if(functionEval == self.functionEvaluationLimit):
+                break;
+            
+            potentialBestEval = 10e1000000000000000
+            potentialBestEvals = []
+            potentialBestPosition = []
+            
+            for player in players:
+                
+                if np.random.rand() <= self.moveOffProbability:
+                    self.__move_off(player)
+                    
+                    if np.random.rand() <= self.moveForwardAfterMoveOffProbability:
+                        self.__move_forward(player)
+
+                else:
+                    self.__move_forward(player)
+                
+                evals,*resto = self.__evaluate(player.position)
+                functionEval += 1
+
+                for e in range(len(evals)):
+                    if evals[e] < player.bestEvals[e]:
+                        player.bestEvals[e] = evals[e]
+                        player.bestPosition[e] = player.position[e].copy()
+                
+                evals,*resto = self.__evaluate(player.bestPosition)
+                functionEval += 1
+                
+                player.bestEvals = evals.copy()
+
+                if player.getBestEval() < potentialBestEval:
+                    potentialBestEval = player.getBestEval()
+                    potentialBestEvals = player.bestEvals.copy()
+                    potentialBestPosition = [pp.copy() for pp in player.bestPosition]
+                
+                if(functionEval == self.functionEvaluationLimit):
+                    break;
+            
+            if potentialBestEval < self.globalBestEval:
+                self.globalBestEval = potentialBestEval
+                self.globalBestEvals = potentialBestEvals.copy()
+                self.globalBestPosition = [pp.copy() for pp in potentialBestPosition]
+            
+            if np.random.rand() <= self.substitutionProbability:
+                playerIndex = np.random.randint(self.playerNumber)
+                substituteIndex = np.random.randint(self.substituteNumber)
+                
+                if substitutePlayers[substituteIndex].getBestEval() < players[playerIndex].getBestEval():
+                    players[playerIndex].bestEvals = substitutePlayers[substituteIndex].bestEvals.copy()
+                    players[playerIndex].position = [pp.copy() for pp in substitutePlayers[substituteIndex].bestPosition]
+                    players[playerIndex].bestPosition = [pp.copy() for pp in substitutePlayers[substituteIndex].bestPosition]
+
+            playersSorted = players.copy()
+            playersSorted.sort(key=lambda x: x.getBestEval())
+            
+            playerIndex = 0
+            for i in range(self.substituteNumber):
+                if playersSorted[playerIndex].getBestEval() < substitutePlayers[i].getBestEval():
+                    substitutePlayers.insert(i, Player([pp.copy() for pp in playersSorted[playerIndex].bestPosition], [pp.copy() for pp in playersSorted[playerIndex].bestPosition], playersSorted[playerIndex].bestEvals.copy(), playersSorted[playerIndex].numberOfRrh, playersSorted[playerIndex].numberOfVariables))
+                    substitutePlayers.pop()
+                    playerIndex += 1        
+
+        total = self.globalBestPosition
+        split = []
+        #print(total)
+        for t in range(len(total)):
+            Split_id = total[t][0:4]
+            split.append(Split_id)
+            #tot_traffic = t+1*1966
+        return split
+
