@@ -117,6 +117,12 @@ Fog_traffic = []
 Antenas= []
 Traffic_Total = []
 solver_time = []
+Split_E_percent = []
+Split_I_percent = []
+Split_D_percent = []
+Split_B_percent = []
+Fog_Nodes = []
+Lambdas = []
 
 number_of_rrhs = 5
 incrementation = 5
@@ -140,11 +146,18 @@ for i in range(epochs):
 	count_nodes = 0
 	total_trafficl = 0.0
 	count_lambdas =0
+	fog_capacity = 20000
+	lambdas_capacity = 10000
 	split_E = 0
+	split_E_percent= 0
+	split_I_percent= 0
+	split_D_percent= 0
+	split_B_percent= 0
 	split_I = 0
 	split_D = 0
 	split_B = 0
 	split_Bl = 0
+
 	print("Execution {} with {} RRHs".format(i, number_of_rrhs))
 	Antenas.append(number_of_rrhs)
 	Traffic_Total.append(number_of_rrhs*1966)
@@ -155,37 +168,59 @@ for i in range(epochs):
 		try:
 			if res[i][:1]==[1]:
 				split_E+=1
+				total_traffic_cloud +=1966
+				total_traffic_fog +=0
+				split_E_percent = (split_E/number_of_rrhs)*100
+
 			if res[i][1:2]==[1]:
 				split_I+=1
+				total_traffic_cloud += 674.4
+				total_traffic_fog += 1291.6
+				split_I_percent = (split_I/number_of_rrhs)*100
+
 			if res[i][2:3]==[1]:
 				split_D+=1
+				total_traffic_cloud += 119
+				total_traffic_fog += 1847
+				split_D_percent = (split_D/number_of_rrhs)*100
+
+
 			if res[i][3:]==[1]:
 				split_B+=1
+				total_traffic_cloud += 74
+				total_traffic_fog += 1892
+				split_B_percent = (split_B/number_of_rrhs)*100
+
+
 			if res[i][:]==[0, 0, 0, 0]:
 				split_Bl +=1
 
 		except:
 			pass
-
+		
 		try:
 			for j in res[i]:
 				#print(j, res[i])
 				if res[i].index(1) == 0:
-					total_traffic_cloud +=1966
-					total_traffic_fog +=0
+					pass
+					#total_traffic_cloud +=1966
+					#total_traffic_fog +=0
 					#split_E = res[i]
 				if res[i].index(1) == 1:
-					total_traffic_cloud += 674.4
-					total_traffic_fog += 1291.6
+					#total_traffic_cloud += 674.4
+					#total_traffic_fog += 1291.6
 					#split_I +=1
+					pass
 				if res[i].index(1) == 2:
-					total_traffic_cloud += 119
-					total_traffic_fog += 1847
+					#total_traffic_cloud += 119
+					#total_traffic_fog += 1847
 					#split_D +=1
+					pass
 				if res[i].index(1) == 3:
-					total_traffic_cloud += 74
-					total_traffic_fog += 1892
+					#total_traffic_cloud += 74
+					#total_traffic_fog += 1892
 					#split_B +=1
+					pass
 				bloqueio+=0
 				#print(total_traffic_cloud, total_traffic_fog, split_E, split_I, split_D, split_B)
 				#print(total_traffic_cloud, total_traffic_fog, split_E)
@@ -199,9 +234,15 @@ for i in range(epochs):
 	Split_I.append(split_I)
 	Split_D.append(split_D)
 	Split_B.append(split_B)
+	Split_E_percent.append(split_E_percent)
+	Split_I_percent.append(split_I_percent)
+	Split_D_percent.append(split_D_percent)
+	Split_B_percent.append(split_B_percent)
 	#print(Split_E)
 	Cloud_traffic.append(total_traffic_cloud)
 	Fog_traffic.append(total_traffic_fog)
+	Fog_Nodes.append(math.ceil(total_traffic_fog/fog_capacity))
+	Lambdas.append(math.ceil((number_of_rrhs*1966)/lambdas_capacity))
 	#print(Cloud_traffic)
 	endTime = time.time()
 	solver_time.append(endTime-startTime)
@@ -216,6 +257,6 @@ for i in range(epochs):
 
 
 numpy.random.seed(1)
-dados = pd.DataFrame(data={"Antenas": Antenas, "Cloud_traffic":Cloud_traffic, "Fog_traffic":Fog_traffic,"Traffic_Total":Traffic_Total, "Blocked": Block, "Split_E":Split_E, "Split_I":Split_I, "Split_D":Split_D, "Split_B":Split_B, "CPU_Wastage":cpu})
+dados = pd.DataFrame(data={"Antenas": Antenas, "Cloud_traffic":Cloud_traffic, "Fog_traffic":Fog_traffic,'Fog_Nodes':Fog_Nodes,"Traffic_Total":Traffic_Total, "Lambdas":Lambdas, "Blocked": Block, "Split_E":Split_E, "Split_I":Split_I, "Split_D":Split_D, "Split_B":Split_B,"Split_E_percent":Split_E_percent,"Split_I_percent":Split_I_percent,"Split_D_percent":Split_D_percent,"Split_B_percent":Split_B_percent, "CPU_Wastage":cpu})
 dados.to_csv("SGO_Static.csv", sep=';',index=False)
 
